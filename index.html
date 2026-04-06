@@ -2,268 +2,309 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Global Chat | v6.0 Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Elite Global Chat | v10.0</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --glass: rgba(255, 255, 255, 0.05);
-            --glass-heavy: rgba(255, 255, 255, 0.12);
-            --border: rgba(255, 255, 255, 0.15);
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-heavy: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.12);
             --accent: #00d2ff;
             --bg: #050505;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        
         body {
-            background: var(--bg); color: white; font-family: 'Inter', sans-serif;
-            height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden;
+            background: var(--bg); 
+            color: white; 
+            font-family: 'Inter', sans-serif;
+            height: 100dvh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
         }
 
+        /* Animated Background */
         body::before {
             content: ""; position: absolute; inset: 0;
-            background: linear-gradient(45deg, #050505, #1a1a2e, #16213e, #0f3460);
-            background-size: 400% 400%; z-index: -1; animation: fluidBG 15s ease infinite;
+            background: radial-gradient(circle at top right, #1a1a2e, #050505);
+            z-index: -1;
         }
-
-        @keyframes fluidBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
         .app-container {
-            display: flex; width: 95vw; height: 90vh; max-width: 1100px;
-            background: var(--glass); backdrop-filter: blur(30px);
-            border: 1px solid var(--border); border-radius: 28px; overflow: hidden;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+            display: flex; 
+            width: 100vw; 
+            height: 100dvh; 
+            background: var(--glass); 
+            backdrop-filter: blur(40px);
+            overflow: hidden;
+            position: relative;
         }
 
-        .sidebar { width: 260px; border-right: 1px solid var(--border); background: rgba(0,0,0,0.3); display: flex; flex-direction: column; }
-        .sidebar-header { padding: 25px; font-weight: 800; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; }
+        /* SIDEBAR (Slide-in for Mobile, Fixed for Desktop) */
+        .sidebar {
+            width: 280px;
+            background: rgba(0,0,0,0.8);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100dvh;
+                transform: translateX(-100%);
+            }
+            .sidebar.active { transform: translateX(0); }
+        }
+
+        .sidebar-header { 
+            padding: 25px; 
+            font-weight: 900; 
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close-sidebar {
+            background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; display: none;
+        }
+        @media (max-width: 768px) { .close-sidebar { display: block; } }
+
         #member-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .member-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; margin-bottom: 8px; background: rgba(255,255,255,0.03); }
-
-        .chat-main { flex: 1; display: flex; flex-direction: column; }
-        #messages { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 20px; }
-
-        .message-row { display: flex; gap: 12px; align-items: flex-start; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
-
-        .avatar { width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; background: #222; }
-        .msg-bubble { background: var(--glass-heavy); padding: 12px 18px; border-radius: 20px; border-top-left-radius: 4px; max-width: 75%; position: relative; }
-        .msg-user { color: var(--accent); font-weight: 800; font-size: 0.75rem; margin-bottom: 4px; text-transform: uppercase; }
-
-        .reaction-bar { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-        .reaction-btn { 
-            cursor: pointer; font-size: 0.85rem; background: rgba(255,255,255,0.08); 
-            padding: 4px 10px; border-radius: 12px; border: 1px solid transparent; transition: 0.2s;
+        .member-item { 
+            display: flex; align-items: center; gap: 12px; padding: 12px; 
+            border-radius: 14px; margin-bottom: 8px; background: rgba(255,255,255,0.02);
+            border: 1px solid transparent;
         }
-        .reaction-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--accent); }
-        .reaction-active { background: var(--accent) !important; color: black; }
 
-        .btn-delete { background: none; border: none; color: #ff4d4d; font-size: 0.65rem; cursor: pointer; margin-top: 10px; opacity: 0.5; font-weight: 700; }
-        .footer { padding: 25px; background: rgba(0,0,0,0.5); display: flex; align-items: center; gap: 15px; border-top: 1px solid var(--border); }
-        input[type="text"] { flex: 1; background: rgba(255,255,255,0.08); border: 1px solid var(--border); padding: 15px 25px; border-radius: 40px; color: white; outline: none; }
-        .btn-send { background: var(--accent); color: black; border: none; padding: 12px 30px; border-radius: 40px; font-weight: 900; cursor: pointer; }
+        /* CHAT MAIN AREA */
+        .chat-main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        
+        .top-nav {
+            padding: 15px 20px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .menu-btn {
+            background: var(--accent); color: black; border: none; 
+            padding: 8px 16px; border-radius: 20px; font-weight: 800; cursor: pointer;
+        }
+
+        #messages { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px;
+            scroll-behavior: smooth;
+        }
+
+        .avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
+        .message-row { display: flex; gap: 10px; align-items: flex-start; max-width: 90%; }
+        .msg-bubble { 
+            background: var(--glass-heavy); 
+            padding: 12px 16px; 
+            border-radius: 18px; 
+            border-top-left-radius: 4px;
+            border: 1px solid var(--border);
+        }
+        .msg-user { color: var(--accent); font-weight: 800; font-size: 0.7rem; margin-bottom: 4px; text-transform: uppercase; }
+
+        /* REACTION SYSTEM */
+        .reactions-row { display: flex; gap: 5px; margin-top: 8px; }
+        .react-btn { 
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            padding: 4px 8px; border-radius: 10px; font-size: 0.8rem; cursor: pointer; transition: 0.2s;
+        }
+        .react-btn.active { background: var(--accent); color: black; border-color: var(--accent); }
+
+        /* FOOTER */
+        .footer { 
+            padding: 20px; 
+            background: rgba(0,0,0,0.6); 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            border-top: 1px solid var(--border);
+        }
+        #msgInput { 
+            flex: 1; background: rgba(255,255,255,0.07); border: 1px solid var(--border); 
+            padding: 14px 20px; border-radius: 30px; color: white; outline: none; font-size: 16px; 
+        }
+        .btn-send { 
+            background: var(--accent); color: black; border: none; 
+            width: 50px; height: 50px; border-radius: 50%; font-weight: 900; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* DESKTOP ADJUSTMENTS */
+        @media (min-width: 769px) {
+            .app-container { width: 95vw; height: 90vh; border-radius: 30px; border: 1px solid var(--border); }
+            .menu-btn { display: none; }
+        }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 3000; }
         .modal-overlay.active { display: flex; }
-        .modal-card { background: #0a0a0a; width: 420px; padding: 35px; border-radius: 30px; border: 1px solid var(--border); text-align: center; }
-        .cropper-box { width: 100%; height: 300px; background: #000; margin: 20px 0; border-radius: 20px; overflow: hidden; }
-        #crop-img { max-width: 100%; }
+        .modal-card { background: #0a0a0a; width: 320px; padding: 30px; border-radius: 25px; border: 1px solid var(--border); text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <aside class="sidebar">
-        <div class="sidebar-header"><span>MEMBERS</span><span id="member-count" style="color: var(--accent);">0</span></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span>MEMBERS</span>
+            <button class="close-sidebar" onclick="toggleSidebar()">✕</button>
+        </div>
         <div id="member-list"></div>
     </aside>
 
     <main class="chat-main">
+        <nav class="top-nav">
+            <button class="menu-btn" onclick="toggleSidebar()">☰ Members</button>
+            <span id="status-text" style="font-size: 0.8rem; color: #888;">Elite Live</span>
+        </nav>
+
         <div id="messages"></div>
+
         <div class="footer">
-            <div onclick="toggleModal()" style="cursor:pointer; position: relative;">
-                <img id="my-avatar-display" src="" class="avatar">
-            </div>
-            <input type="text" id="msgInput" placeholder="Type an elite message..." onkeypress="if(event.key==='Enter') sendMessage()">
-            <button class="btn-send" onclick="sendMessage()">SEND</button>
+            <img id="my-avatar" class="avatar" style="cursor:pointer;" onclick="openProfile()">
+            <input type="text" id="msgInput" placeholder="Write something..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button class="btn-send" onclick="sendMessage()">➔</button>
         </div>
     </main>
 </div>
 
-<div class="modal-overlay" id="modalOverlay">
+<div class="modal-overlay" id="profileModal">
     <div class="modal-card">
-        <h2>Elite Profile</h2>
-        <div class="cropper-box"><img id="crop-img" src=""></div>
-        <button class="btn-send" style="background: rgba(255,255,255,0.1); color: white; margin-bottom:12px; width:100%;" onclick="document.getElementById('galleryInput').click()">CHOOSE IMAGE</button>
-        <input type="file" id="galleryInput" accept="image/*" style="display:none;" onchange="handleFile(event)">
-        <input type="text" id="editName" style="text-align: center; width: 100%; margin-bottom: 20px; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: #222; color: white;">
-        <button class="btn-send" id="saveBtn" style="width:100%;" onclick="saveProfile()">SAVE CHANGES</button>
-        <button onclick="toggleModal()" style="background:none; border:none; color:#666; cursor:pointer; margin-top:15px;">CANCEL</button>
+        <h3>Elite Name</h3>
+        <input type="text" id="newName" style="width:100%; padding:12px; margin:20px 0; background:#111; color:white; border:1px solid var(--border); border-radius:10px; text-align:center;">
+        <button class="menu-btn" style="width:100%;" onclick="saveProfile()">SAVE</button>
+        <p onclick="closeProfile()" style="margin-top:15px; color:#555; cursor:pointer; font-size:0.8rem;">CANCEL</p>
     </div>
 </div>
 
 <script>
+    // --- CONFIGURATION ---
     const supabaseUrl = 'https://zybglglnszurtdsisvil.supabase.co';
     const supabaseKey = 'sb_publishable_ur42hv6jPnAzsMcPAYVL1A_v2UKB2CA';
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let userSession = null;
-    let cropper = null;
+    let user = JSON.parse(localStorage.getItem('elite_user_v10')) || null;
 
+    // --- INITIALIZE ---
     async function init() {
-        let saved = localStorage.getItem('elite_session_v6');
-        if (!saved) {
+        if (!user) {
             const id = crypto.randomUUID();
-            userSession = { id, username: "User_" + id.slice(0,4), avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${id}` };
-            localStorage.setItem('elite_session_v6', JSON.stringify(userSession));
-        } else {
-            userSession = JSON.parse(saved);
+            user = { id, username: "Player_" + id.slice(0,4), avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${id}` };
+            localStorage.setItem('elite_user_v10', JSON.stringify(user));
         }
-
-        document.getElementById('my-avatar-display').src = userSession.avatar;
-        document.getElementById('editName').value = userSession.username;
-        document.getElementById('crop-img').src = userSession.avatar;
+        document.getElementById('my-avatar').src = user.avatar;
+        document.getElementById('newName').value = user.username;
 
         loadMessages();
         loadMembers();
-        
-        _supabase.channel('room1')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => loadMessages())
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => loadMembers())
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' }, () => loadMessages())
-            .subscribe();
+
+        // Realtime Subscriptions
+        _supabase.channel('public:messages').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, loadMessages).subscribe();
+        _supabase.channel('public:profiles').on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, loadMembers).subscribe();
+        _supabase.channel('public:reactions').on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' }, loadMessages).subscribe();
     }
 
+    // --- MESSAGE LOGIC ---
     async function loadMessages() {
-        const { data } = await _supabase
-            .from('messages')
-            .select('*, profiles(username, avatar_url), reactions(emoji, user_id)')
-            .order('created_at', { ascending: true });
-        
+        const { data } = await _supabase.from('messages').select('*, profiles(username, avatar_url), reactions(emoji, user_id)').order('created_at', { ascending: true });
         if(data) {
             const box = document.getElementById('messages');
             box.innerHTML = '';
             data.forEach(msg => {
-                const name = msg.profiles ? msg.profiles.username : msg.user_name;
-                const pic = msg.profiles ? msg.profiles.avatar_url : msg.avatar_url;
-                appendMessage({ ...msg, user_name: name, avatar_url: pic });
+                const isMe = msg.user_id === user.id;
+                const name = msg.profiles?.username || msg.user_name || "Guest";
+                const pic = msg.profiles?.avatar_url || msg.avatar_url;
+
+                const div = document.createElement('div');
+                div.className = 'message-row';
+                div.innerHTML = `
+                    <img src="${pic}" class="avatar">
+                    <div class="msg-bubble">
+                        <div class="msg-user">${name}</div>
+                        <div>${msg.content}</div>
+                        <div class="reactions-row">
+                            ${['❤️', '🔥', '👍'].map(e => {
+                                const count = msg.reactions?.filter(r => r.emoji === e).length || 0;
+                                const mine = msg.reactions?.some(r => r.emoji === e && r.user_id === user.id);
+                                return `<span class="react-btn ${mine?'active':''}" onclick="react(${msg.id},'${e}')">${e} ${count||''}</span>`;
+                            }).join('')}
+                        </div>
+                        ${isMe ? `<div onclick="deleteMsg(${msg.id})" style="color:red; font-size:0.6rem; margin-top:8px; cursor:pointer;">Delete</div>` : ''}
+                    </div>`;
+                box.appendChild(div);
             });
             box.scrollTop = box.scrollHeight;
         }
     }
 
-    function appendMessage(msg) {
-        const box = document.getElementById('messages');
-        const div = document.createElement('div');
-        div.className = 'message-row';
-
-        const reactionCounts = {};
-        const myReactions = [];
-        if (msg.reactions) {
-            msg.reactions.forEach(r => {
-                reactionCounts[r.emoji] = (reactionCounts[r.emoji] || 0) + 1;
-                if(r.user_id === userSession.id) myReactions.push(r.emoji);
-            });
-        }
-
-        const isMine = msg.user_id === userSession.id;
-        const emojis = ['❤️', '😂', '🔥', '👍'];
-
-        div.innerHTML = `
-            <img src="${msg.avatar_url}" class="avatar">
-            <div class="msg-bubble">
-                <div class="msg-user">${msg.user_name}</div>
-                <div>${msg.content}</div>
-                <div class="reaction-bar">
-                    ${emojis.map(e => `
-                        <span onclick="toggleReaction(${msg.id}, '${e}')" 
-                              class="reaction-btn ${myReactions.includes(e) ? 'reaction-active' : ''}">
-                            ${e} ${reactionCounts[e] || ''}
-                        </span>
-                    `).join('')}
-                </div>
-                ${isMine ? `<button class="btn-delete" onclick="deleteMsg(${msg.id})">Delete</button>` : ''}
-            </div>`;
-        box.appendChild(div);
-    }
-
-    async function toggleReaction(messageId, emoji) {
-        const { data } = await _supabase
-            .from('reactions')
-            .select('id')
-            .eq('message_id', messageId)
-            .eq('user_id', userSession.id)
-            .eq('emoji', emoji);
-
-        if (data && data.length > 0) {
-            await _supabase.from('reactions').delete().eq('id', data[0].id);
-        } else {
-            await _supabase.from('reactions').insert([{ message_id: messageId, user_id: userSession.id, emoji: emoji }]);
-        }
-    }
-
     async function sendMessage() {
         const input = document.getElementById('msgInput');
-        const val = input.value.trim();
-        if(!val) return;
-        await _supabase.from('messages').insert([{ content: val, user_id: userSession.id, user_name: userSession.username, avatar_url: userSession.avatar }]);
+        if(!input.value.trim()) return;
+        await _supabase.from('messages').insert([{ content: input.value, user_id: user.id, user_name: user.username, avatar_url: user.avatar }]);
         input.value = '';
     }
 
-    async function deleteMsg(id) {
-        if(confirm("Delete message?")) await _supabase.from('messages').delete().eq('id', id);
+    async function react(mId, emoji) {
+        const { data } = await _supabase.from('reactions').select().eq('message_id', mId).eq('user_id', user.id).eq('emoji', emoji);
+        if(data.length) await _supabase.from('reactions').delete().eq('id', data[0].id);
+        else await _supabase.from('reactions').insert([{ message_id: mId, user_id: user.id, emoji }]);
     }
 
-    async function saveProfile() {
-        const btn = document.getElementById('saveBtn');
-        btn.innerText = "UPDATING..."; btn.disabled = true;
-        let finalUrl = userSession.avatar;
-        if (cropper) {
-            const canvas = cropper.getCroppedCanvas({ width: 256, height: 256 });
-            const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.8));
-            const path = `avatars/${userSession.id}.jpg`;
-            await _supabase.storage.from('avatars').upload(path, blob, { upsert: true });
-            const { data: pUrl } = _supabase.storage.from('avatars').getPublicUrl(path);
-            finalUrl = pUrl.publicUrl;
-        }
-        userSession.username = document.getElementById('editName').value || userSession.username;
-        userSession.avatar = finalUrl;
-        localStorage.setItem('elite_session_v6', JSON.stringify(userSession));
-        await _supabase.from('profiles').upsert({ id: userSession.id, username: userSession.username, avatar_url: finalUrl });
-        location.reload();
-    }
+    async function deleteMsg(id) { if(confirm("Delete?")) await _supabase.from('messages').delete().eq('id', id); }
 
-    function handleFile(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                const img = document.getElementById('crop-img');
-                img.src = ev.target.result;
-                if (cropper) cropper.destroy();
-                cropper = new Cropper(img, { aspectRatio: 1, viewMode: 1 });
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-
+    // --- MEMBER LOGIC ---
     async function loadMembers() {
         const { data } = await _supabase.from('profiles').select('*');
         if(data) {
-            document.getElementById('member-count').innerText = data.length;
             document.getElementById('member-list').innerHTML = data.map(m => `
                 <div class="member-item">
-                    <img src="${m.avatar_url}" class="avatar" style="width:32px; height:32px;">
+                    <img src="${m.avatar_url}" class="avatar" style="width:30px; height:30px;">
                     <span>${m.username}</span>
                 </div>`).join('');
         }
     }
 
-    function toggleModal() { document.getElementById('modalOverlay').classList.toggle('active'); }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
+
+    // --- PROFILE LOGIC ---
+    function openProfile() { document.getElementById('profileModal').classList.add('active'); }
+    function closeProfile() { document.getElementById('profileModal').classList.remove('active'); }
+    async function saveProfile() {
+        user.username = document.getElementById('newName').value;
+        localStorage.setItem('elite_user_v10', JSON.stringify(user));
+        await _supabase.from('profiles').upsert({ id: user.id, username: user.username, avatar_url: user.avatar });
+        closeProfile();
+    }
+
     init();
 </script>
 </body>
