@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Elite Global Chat | v10.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Elite Messenger | Full Screen</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-heavy: rgba(255, 255, 255, 0.1);
-            --border: rgba(255, 255, 255, 0.12);
-            --accent: #00d2ff;
             --bg: #050505;
+            --surface: #121212;
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #00d2ff;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -24,150 +24,138 @@
             color: white; 
             font-family: 'Inter', sans-serif;
             height: 100dvh; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
+            width: 100vw;
             overflow: hidden;
-            position: fixed;
-            width: 100%;
-        }
-
-        /* Animated Background */
-        body::before {
-            content: ""; position: absolute; inset: 0;
-            background: radial-gradient(circle at top right, #1a1a2e, #050505);
-            z-index: -1;
+            position: fixed; /* Prevents bouncing on iOS */
         }
 
         .app-container {
             display: flex; 
-            width: 100vw; 
-            height: 100dvh; 
-            background: var(--glass); 
-            backdrop-filter: blur(40px);
-            overflow: hidden;
+            width: 100%; 
+            height: 100%; 
+            background: var(--bg);
             position: relative;
         }
 
-        /* SIDEBAR (Slide-in for Mobile, Fixed for Desktop) */
+        /* --- SIDEBAR (Slide-in Menu) --- */
         .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100%;
             width: 280px;
-            background: rgba(0,0,0,0.8);
+            background: #0a0a0a;
             border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
+            transform: translateX(-100%);
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 2000;
+            display: flex;
+            flex-direction: column;
         }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                left: 0;
-                top: 0;
-                height: 100dvh;
-                transform: translateX(-100%);
-            }
-            .sidebar.active { transform: translateX(0); }
-        }
+        .sidebar.active { transform: translateX(0); }
 
         .sidebar-header { 
-            padding: 25px; 
+            padding: 20px; 
             font-weight: 900; 
-            font-size: 1.2rem;
             border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
-        .close-sidebar {
-            background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; display: none;
-        }
-        @media (max-width: 768px) { .close-sidebar { display: block; } }
 
         #member-list { flex: 1; overflow-y: auto; padding: 15px; }
         .member-item { 
-            display: flex; align-items: center; gap: 12px; padding: 12px; 
-            border-radius: 14px; margin-bottom: 8px; background: rgba(255,255,255,0.02);
-            border: 1px solid transparent;
+            display: flex; align-items: center; gap: 12px; padding: 10px; 
+            border-radius: 12px; margin-bottom: 8px; background: var(--glass);
         }
 
-        /* CHAT MAIN AREA */
-        .chat-main { flex: 1; display: flex; flex-direction: column; position: relative; }
+        /* --- MAIN CHAT AREA --- */
+        .chat-main { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            width: 100%;
+            height: 100%;
+        }
         
         .top-nav {
-            padding: 15px 20px;
-            background: rgba(0,0,0,0.3);
+            padding: 12px 15px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
             border-bottom: 1px solid var(--border);
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 15px;
+            padding-top: env(safe-area-inset-top, 12px); /* Fix for notch phones */
         }
 
         .menu-btn {
             background: var(--accent); color: black; border: none; 
-            padding: 8px 16px; border-radius: 20px; font-weight: 800; cursor: pointer;
+            padding: 6px 12px; border-radius: 15px; font-weight: 800; font-size: 0.8rem;
         }
 
         #messages { 
             flex: 1; 
             overflow-y: auto; 
-            padding: 20px; 
+            padding: 15px; 
             display: flex; 
             flex-direction: column; 
             gap: 15px;
-            scroll-behavior: smooth;
+            background: linear-gradient(to bottom, #050505, #0a0a0a);
         }
 
-        .avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
-        .message-row { display: flex; gap: 10px; align-items: flex-start; max-width: 90%; }
+        .avatar { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
+        .message-row { display: flex; gap: 10px; align-items: flex-end; max-width: 85%; }
+        
         .msg-bubble { 
-            background: var(--glass-heavy); 
+            background: #1e1e1e; 
             padding: 12px 16px; 
             border-radius: 18px; 
-            border-top-left-radius: 4px;
+            border-bottom-left-radius: 4px;
             border: 1px solid var(--border);
+            position: relative;
         }
-        .msg-user { color: var(--accent); font-weight: 800; font-size: 0.7rem; margin-bottom: 4px; text-transform: uppercase; }
+        .msg-user { color: var(--accent); font-weight: 800; font-size: 0.65rem; margin-bottom: 4px; text-transform: uppercase; }
 
-        /* REACTION SYSTEM */
-        .reactions-row { display: flex; gap: 5px; margin-top: 8px; }
+        /* REACTION CHIPS */
+        .reactions-row { display: flex; gap: 4px; margin-top: 6px; }
         .react-btn { 
             background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-            padding: 4px 8px; border-radius: 10px; font-size: 0.8rem; cursor: pointer; transition: 0.2s;
+            padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; cursor: pointer;
         }
-        .react-btn.active { background: var(--accent); color: black; border-color: var(--accent); }
+        .react-btn.active { background: var(--accent); color: black; }
 
-        /* FOOTER */
+        /* --- FOOTER (Input Bar) --- */
         .footer { 
-            padding: 20px; 
-            background: rgba(0,0,0,0.6); 
+            padding: 10px 15px; 
+            background: #000; 
             display: flex; 
             align-items: center; 
             gap: 10px; 
             border-top: 1px solid var(--border);
+            padding-bottom: env(safe-area-inset-bottom, 15px); /* Fix for bottom swipe bar */
         }
+        
         #msgInput { 
-            flex: 1; background: rgba(255,255,255,0.07); border: 1px solid var(--border); 
-            padding: 14px 20px; border-radius: 30px; color: white; outline: none; font-size: 16px; 
+            flex: 1; background: #1a1a1a; border: 1px solid var(--border); 
+            padding: 12px 18px; border-radius: 25px; color: white; outline: none; font-size: 16px; 
         }
+
         .btn-send { 
             background: var(--accent); color: black; border: none; 
-            width: 50px; height: 50px; border-radius: 50%; font-weight: 900; cursor: pointer;
+            width: 40px; height: 40px; border-radius: 50%; font-weight: 900; 
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* DESKTOP ADJUSTMENTS */
-        @media (min-width: 769px) {
-            .app-container { width: 95vw; height: 90vh; border-radius: 30px; border: 1px solid var(--border); }
-            .menu-btn { display: none; }
+        /* Desktop Mode (Keep it centered) */
+        @media (min-width: 1024px) {
+            .app-container { width: 450px; margin: auto; height: 90vh; border-radius: 20px; border: 1px solid var(--border); }
+            body { display: flex; align-items: center; justify-content: center; position: relative; }
+            .sidebar { position: absolute; left: -300px; transform: none; display: block; border-radius: 20px; height: 90vh; }
         }
 
-        /* MODAL */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 3000; }
         .modal-overlay.active { display: flex; }
-        .modal-card { background: #0a0a0a; width: 320px; padding: 30px; border-radius: 25px; border: 1px solid var(--border); text-align: center; }
     </style>
 </head>
 <body>
@@ -176,7 +164,7 @@
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <span>MEMBERS</span>
-            <button class="close-sidebar" onclick="toggleSidebar()">✕</button>
+            <button onclick="toggleSidebar()" style="background:none; border:none; color:white; font-size:1.5rem;">✕</button>
         </div>
         <div id="member-list"></div>
     </aside>
@@ -184,42 +172,40 @@
     <main class="chat-main">
         <nav class="top-nav">
             <button class="menu-btn" onclick="toggleSidebar()">☰ Members</button>
-            <span id="status-text" style="font-size: 0.8rem; color: #888;">Elite Live</span>
+            <span style="font-weight: 800; font-size: 0.9rem; color: var(--accent);">ELITE CHAT</span>
         </nav>
 
         <div id="messages"></div>
 
         <div class="footer">
-            <img id="my-avatar" class="avatar" style="cursor:pointer;" onclick="openProfile()">
-            <input type="text" id="msgInput" placeholder="Write something..." onkeypress="if(event.key==='Enter') sendMessage()">
-            <button class="btn-send" onclick="sendMessage()">➔</button>
+            <img id="my-avatar" class="avatar" style="width:35px; height:35px; cursor:pointer;" onclick="openProfile()">
+            <input type="text" id="msgInput" placeholder="Aa" onkeypress="if(event.key==='Enter') sendMessage()">
+            <button class="btn-send" onclick="sendMessage()">➤</button>
         </div>
     </main>
 </div>
 
 <div class="modal-overlay" id="profileModal">
-    <div class="modal-card">
-        <h3>Elite Name</h3>
-        <input type="text" id="newName" style="width:100%; padding:12px; margin:20px 0; background:#111; color:white; border:1px solid var(--border); border-radius:10px; text-align:center;">
-        <button class="menu-btn" style="width:100%;" onclick="saveProfile()">SAVE</button>
-        <p onclick="closeProfile()" style="margin-top:15px; color:#555; cursor:pointer; font-size:0.8rem;">CANCEL</p>
+    <div class="modal-card" style="background:#111; padding:30px; border-radius:20px; text-align:center; border:1px solid var(--border);">
+        <h3>Change Name</h3>
+        <input type="text" id="newName" style="width:100%; padding:12px; margin:20px 0; background:#000; color:white; border:1px solid var(--border); border-radius:10px; text-align:center;">
+        <button class="menu-btn" style="width:100%; padding:10px;" onclick="saveProfile()">SAVE</button>
+        <p onclick="closeProfile()" style="margin-top:15px; color:#555; cursor:pointer;">CLOSE</p>
     </div>
 </div>
 
 <script>
-    // --- CONFIGURATION ---
     const supabaseUrl = 'https://zybglglnszurtdsisvil.supabase.co';
     const supabaseKey = 'sb_publishable_ur42hv6jPnAzsMcPAYVL1A_v2UKB2CA';
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let user = JSON.parse(localStorage.getItem('elite_user_v10')) || null;
+    let user = JSON.parse(localStorage.getItem('elite_user_v11')) || null;
 
-    // --- INITIALIZE ---
     async function init() {
         if (!user) {
             const id = crypto.randomUUID();
             user = { id, username: "Player_" + id.slice(0,4), avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${id}` };
-            localStorage.setItem('elite_user_v10', JSON.stringify(user));
+            localStorage.setItem('elite_user_v11', JSON.stringify(user));
         }
         document.getElementById('my-avatar').src = user.avatar;
         document.getElementById('newName').value = user.username;
@@ -227,13 +213,11 @@
         loadMessages();
         loadMembers();
 
-        // Realtime Subscriptions
-        _supabase.channel('public:messages').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, loadMessages).subscribe();
-        _supabase.channel('public:profiles').on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, loadMembers).subscribe();
-        _supabase.channel('public:reactions').on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' }, loadMessages).subscribe();
+        _supabase.channel('room1').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, loadMessages).subscribe();
+        _supabase.channel('room1').on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, loadMembers).subscribe();
+        _supabase.channel('room1').on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' }, loadMessages).subscribe();
     }
 
-    // --- MESSAGE LOGIC ---
     async function loadMessages() {
         const { data } = await _supabase.from('messages').select('*, profiles(username, avatar_url), reactions(emoji, user_id)').order('created_at', { ascending: true });
         if(data) {
@@ -246,10 +230,12 @@
 
                 const div = document.createElement('div');
                 div.className = 'message-row';
+                if(isMe) div.style.alignSelf = 'flex-end';
+                
                 div.innerHTML = `
-                    <img src="${pic}" class="avatar">
-                    <div class="msg-bubble">
-                        <div class="msg-user">${name}</div>
+                    ${!isMe ? `<img src="${pic}" class="avatar">` : ''}
+                    <div class="msg-bubble" style="${isMe ? 'background: #0084ff; border:none; border-bottom-left-radius: 18px; border-bottom-right-radius: 4px;' : ''}">
+                        <div class="msg-user" style="${isMe ? 'color: white; opacity:0.8;' : ''}">${name}</div>
                         <div>${msg.content}</div>
                         <div class="reactions-row">
                             ${['❤️', '🔥', '👍'].map(e => {
@@ -258,7 +244,6 @@
                                 return `<span class="react-btn ${mine?'active':''}" onclick="react(${msg.id},'${e}')">${e} ${count||''}</span>`;
                             }).join('')}
                         </div>
-                        ${isMe ? `<div onclick="deleteMsg(${msg.id})" style="color:red; font-size:0.6rem; margin-top:8px; cursor:pointer;">Delete</div>` : ''}
                     </div>`;
                 box.appendChild(div);
             });
@@ -279,9 +264,6 @@
         else await _supabase.from('reactions').insert([{ message_id: mId, user_id: user.id, emoji }]);
     }
 
-    async function deleteMsg(id) { if(confirm("Delete?")) await _supabase.from('messages').delete().eq('id', id); }
-
-    // --- MEMBER LOGIC ---
     async function loadMembers() {
         const { data } = await _supabase.from('profiles').select('*');
         if(data) {
@@ -294,13 +276,11 @@
     }
 
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
-
-    // --- PROFILE LOGIC ---
     function openProfile() { document.getElementById('profileModal').classList.add('active'); }
     function closeProfile() { document.getElementById('profileModal').classList.remove('active'); }
     async function saveProfile() {
         user.username = document.getElementById('newName').value;
-        localStorage.setItem('elite_user_v10', JSON.stringify(user));
+        localStorage.setItem('elite_user_v11', JSON.stringify(user));
         await _supabase.from('profiles').upsert({ id: user.id, username: user.username, avatar_url: user.avatar });
         closeProfile();
     }
