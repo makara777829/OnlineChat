@@ -3,195 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Elite Messenger | Full Screen</title>
+    <title>Elite Gallery | Vertex Titanium</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;900&family=JetBrains+Mono&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg: #050505;
-            --surface: #121212;
-            --glass: rgba(255, 255, 255, 0.05);
+            --ui-bg: rgba(15, 15, 20, 0.98);
+            --ui-panel: rgba(25, 25, 35, 0.98);
             --border: rgba(255, 255, 255, 0.1);
-            --accent: #00d2ff;
+            --accent: #00f2ff;
+            --accent-glow: rgba(0, 242, 255, 0.3);
+            --text-main: #ffffff;
+            --text-sub: #888899;
+            --danger: #ff4d4d;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         
-        body {
-            background: var(--bg); 
-            color: white; 
-            font-family: 'Inter', sans-serif;
-            height: 100dvh; 
-            width: 100vw;
-            overflow: hidden;
-            position: fixed; /* Prevents bouncing on iOS */
+        body { 
+            background: #0a0a0c;
+            color: var(--text-main); font-family: 'Inter', sans-serif; height: 100dvh; overflow: hidden; position: fixed; width: 100%; 
         }
 
-        .app-container {
-            display: flex; 
-            width: 100%; 
-            height: 100%; 
-            background: var(--bg);
-            position: relative;
+        /* --- VERTEX STUDIO INTERFACE --- */
+        #paint-studio {
+            position: fixed; inset: 0; background: #0a0a0c; z-index: 6000;
+            display: none; flex-direction: column; 
         }
+        #paint-studio.active { display: flex; }
+        canvas#vertexCanvas { position: absolute; top: 0; left: 0; cursor: crosshair; touch-action: none; background: #0a0a0c; }
+        .vertex-ui-interface { position: relative; width: 100%; height: 100%; pointer-events: none; z-index: 6001; }
+        .ui-panel { pointer-events: auto; background: var(--ui-panel); border: 1px solid var(--border); border-radius: 14px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); backdrop-filter: blur(12px); }
+        .ui-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+        .ui-title { font-size: 10px; font-weight: 900; text-transform: uppercase; color: var(--accent); letter-spacing: 3px; }
+        .ui-controls-group { display: flex; flex-direction: column; gap: 10px; padding: 15px; max-height: 80vh; overflow-y: auto; }
+        .ui-sub { font-size: 9px; text-transform: uppercase; color: var(--text-sub); letter-spacing: 1.5px; font-weight: 700; margin-top: 5px; }
+        .btn-tool-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+        .tool-btn { background: var(--ui-bg); border: 1px solid var(--border); color: var(--text-sub); padding: 10px 5px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 10px; display: flex; flex-direction: column; align-items: center; }
+        .tool-btn.active { background: var(--accent); color: #000; box-shadow: 0 0 15px var(--accent-glow); border-color: transparent; font-weight: 700; }
+        #mainSidebar { position: absolute; left: 20px; top: 20px; width: 240px; }
+        #actionGroup { position: absolute; right: 20px; top: 20px; display: flex; gap: 8px; pointer-events: auto; }
+        .action-btn { background: var(--ui-panel); border: 1px solid var(--border); color: var(--text-main); padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+        .action-btn.primary { background: var(--accent); color: #000; border: none; }
 
-        /* --- SIDEBAR (Slide-in Menu) --- */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 280px;
-            background: #0a0a0a;
-            border-right: 1px solid var(--border);
-            transform: translateX(-100%);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 2000;
-            display: flex;
-            flex-direction: column;
+        /* --- CHAT STYLES --- */
+        .app-container { display: flex; width: 100vw; height: 100dvh; flex-direction: column; background: #0a0a0c; }
+        header { padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); background: var(--ui-panel); }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .msg { display: flex; gap: 12px; max-width: 85%; align-items: flex-start; position: relative; }
+        .msg.me { align-self: flex-end; flex-direction: row-reverse; }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); object-fit: cover; }
+        .bubble { background: #1e2229; padding: 12px 15px; border-radius: 15px; position: relative; color: #fff; border: 1px solid var(--border); }
+        .msg.me .bubble { background: #2f3542; border-color: var(--accent); }
+        
+        /* DELETE BUTTON */
+        .del-btn { 
+            background: var(--danger); color: white; border: none; width: 18px; height: 18px; 
+            border-radius: 50%; font-size: 10px; cursor: pointer; position: absolute; 
+            top: -5px; right: -5px; display: none; align-items: center; justify-content: center;
         }
+        .msg.me:hover .del-btn { display: flex; }
+
+        .footer { padding: 10px 15px; display: flex; align-items: center; gap: 10px; background: #1e2229; padding-bottom: env(safe-area-inset-bottom); }
+        .acc-trigger { width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--accent); cursor: pointer; }
+        .input-wrap { flex: 1; background: #000; border-radius: 20px; display: flex; align-items: center; padding: 0 15px; border: 1px solid var(--border); }
+        .input-wrap input { flex: 1; border: none; background: none; padding: 10px; outline: none; font-size: 14px; color: white; }
+        .btn-paint-open { background: var(--accent); color: #000; border: none; padding: 10px 15px; border-radius: 10px; font-weight: 900; cursor: pointer; font-size: 0.7rem; }
+
+        /* Sidebar / PRO Member Menu */
+        .sidebar { position: fixed; left: 0; top: 0; width: 280px; height: 100%; background: var(--ui-panel); z-index: 7000; transform: translateX(-100%); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: white; border-right: 1px solid var(--border); backdrop-filter: blur(20px); }
         .sidebar.active { transform: translateX(0); }
+        .member-search { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 10px; border-radius: 8px; color: white; margin-bottom: 15px; outline: none; font-size: 12px; }
+        .member-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; margin-bottom: 5px; transition: 0.2s; }
+        .member-item:hover { background: rgba(255,255,255,0.05); }
+        .member-count-badge { background: var(--accent); color: black; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 900; margin-left: 10px; }
 
-        .sidebar-header { 
-            padding: 20px; 
-            font-weight: 900; 
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        #member-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .member-item { 
-            display: flex; align-items: center; gap: 12px; padding: 10px; 
-            border-radius: 12px; margin-bottom: 8px; background: var(--glass);
-        }
-
-        /* --- MAIN CHAT AREA --- */
-        .chat-main { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            width: 100%;
-            height: 100%;
-        }
-        
-        .top-nav {
-            padding: 12px 15px;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding-top: env(safe-area-inset-top, 12px); /* Fix for notch phones */
-        }
-
-        .menu-btn {
-            background: var(--accent); color: black; border: none; 
-            padding: 6px 12px; border-radius: 15px; font-weight: 800; font-size: 0.8rem;
-        }
-
-        #messages { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 15px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px;
-            background: linear-gradient(to bottom, #050505, #0a0a0a);
-        }
-
-        .avatar { width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--accent); object-fit: cover; }
-        .message-row { display: flex; gap: 10px; align-items: flex-end; max-width: 85%; }
-        
-        .msg-bubble { 
-            background: #1e1e1e; 
-            padding: 12px 16px; 
-            border-radius: 18px; 
-            border-bottom-left-radius: 4px;
-            border: 1px solid var(--border);
-            position: relative;
-        }
-        .msg-user { color: var(--accent); font-weight: 800; font-size: 0.65rem; margin-bottom: 4px; text-transform: uppercase; }
-
-        /* REACTION CHIPS */
-        .reactions-row { display: flex; gap: 4px; margin-top: 6px; }
-        .react-btn { 
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-            padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; cursor: pointer;
-        }
-        .react-btn.active { background: var(--accent); color: black; }
-
-        /* --- FOOTER (Input Bar) --- */
-        .footer { 
-            padding: 10px 15px; 
-            background: #000; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-            border-top: 1px solid var(--border);
-            padding-bottom: env(safe-area-inset-bottom, 15px); /* Fix for bottom swipe bar */
-        }
-        
-        #msgInput { 
-            flex: 1; background: #1a1a1a; border: 1px solid var(--border); 
-            padding: 12px 18px; border-radius: 25px; color: white; outline: none; font-size: 16px; 
-        }
-
-        .btn-send { 
-            background: var(--accent); color: black; border: none; 
-            width: 40px; height: 40px; border-radius: 50%; font-weight: 900; 
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        /* Desktop Mode (Keep it centered) */
-        @media (min-width: 1024px) {
-            .app-container { width: 450px; margin: auto; height: 90vh; border-radius: 20px; border: 1px solid var(--border); }
-            body { display: flex; align-items: center; justify-content: center; position: relative; }
-            .sidebar { position: absolute; left: -300px; transform: none; display: block; border-radius: 20px; height: 90vh; }
-        }
-
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 3000; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 8000; display: none; align-items: center; justify-content: center; padding: 20px; }
         .modal-overlay.active { display: flex; }
+        .modal-card { background: #1e2229; width: 100%; max-width: 350px; padding: 30px; border-radius: 15px; text-align: center; border: 1px solid var(--border); color: white; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <span>MEMBERS</span>
-            <button onclick="toggleSidebar()" style="background:none; border:none; color:white; font-size:1.5rem;">✕</button>
+<div id="paint-studio">
+    <canvas id="vertexCanvas"></canvas>
+    <div class="vertex-ui-interface">
+        <div id="actionGroup">
+            <button class="action-btn" onclick="undo()">Undo</button>
+            <button class="action-btn" onclick="clearCanvas()" style="color:var(--danger)">Reset</button>
+            <button class="action-btn" onclick="toggleStudio()">Exit</button>
+            <button class="action-btn primary" onclick="sendPainting()">Publish Art</button>
         </div>
-        <div id="member-list"></div>
-    </aside>
 
-    <main class="chat-main">
-        <nav class="top-nav">
-            <button class="menu-btn" onclick="toggleSidebar()">☰ Members</button>
-            <span style="font-weight: 800; font-size: 0.9rem; color: var(--accent);">ELITE CHAT</span>
-        </nav>
-
-        <div id="messages"></div>
-
-        <div class="footer">
-            <img id="my-avatar" class="avatar" style="width:35px; height:35px; cursor:pointer;" onclick="openProfile()">
-            <input type="text" id="msgInput" placeholder="Aa" onkeypress="if(event.key==='Enter') sendMessage()">
-            <button class="btn-send" onclick="sendMessage()">➤</button>
+        <div id="mainSidebar" class="ui-panel">
+            <div class="ui-header"><span class="ui-title">VERTEX TITANIUM</span></div>
+            <div class="ui-controls-group">
+                <div class="ui-sub">Engine Core</div>
+                <div class="btn-tool-grid" id="brushGrid">
+                    <button class="tool-btn active" data-brush="ink">🖋️ Ink</button>
+                    <button class="tool-btn" data-brush="glitch">👾 Glitch</button>
+                    <button class="tool-btn" data-brush="drip">💧 Drip</button>
+                    <button class="tool-btn" data-brush="neon">⚡ Neon</button>
+                    <button class="tool-btn" data-brush="web">🕸️ Web</button>
+                    <button class="tool-btn" data-brush="oil">🎨 Oil</button>
+                </div>
+                <div class="ui-sub">Neural Modes</div>
+                <div class="btn-tool-grid">
+                    <button class="tool-btn" data-mode="smooth">🎯 Lazy</button>
+                    <button class="tool-btn" data-mode="radial">☸️ Radial</button>
+                    <button class="tool-btn" data-mode="trail">🌫️ Trail</button>
+                    <button class="tool-btn" data-mode="jitter">🎲 Jitter</button>
+                    <button class="tool-btn" data-mode="eraser">🧹 Eraser</button>
+                </div>
+                <div class="ui-sub">Chroma</div>
+                <input type="color" id="vertexColorPicker" value="#00f2ff" style="width:100%; height:30px; background:none; border:none;">
+                <div class="ui-sub">Caliber <span style="float:right" id="sizeVal">25px</span></div>
+                <input type="range" id="sizeSlider" min="1" max="150" value="25" style="width:100%">
+            </div>
         </div>
-    </main>
+    </div>
 </div>
 
-<div class="modal-overlay" id="profileModal">
-    <div class="modal-card" style="background:#111; padding:30px; border-radius:20px; text-align:center; border:1px solid var(--border);">
-        <h3>Change Name</h3>
-        <input type="text" id="newName" style="width:100%; padding:12px; margin:20px 0; background:#000; color:white; border:1px solid var(--border); border-radius:10px; text-align:center;">
-        <button class="menu-btn" style="width:100%; padding:10px;" onclick="saveProfile()">SAVE</button>
-        <p onclick="closeProfile()" style="margin-top:15px; color:#555; cursor:pointer;">CLOSE</p>
+<div class="app-container">
+    <header>
+        <button onclick="toggleMenu()" style="background:var(--accent); color:black; border:none; padding:8px 12px; border-radius:8px; font-weight:900; font-size:10px;">PRO CATALOG</button>
+        <span style="font-family:'Dancing Script'; font-size:1.5rem; font-weight:900; color:var(--accent);">Elite Gallery</span>
+        <div style="width:50px"></div>
+    </header>
+
+    <div id="chat-box"></div>
+
+    <div class="footer">
+        <img id="footer-acc-img" class="acc-trigger" onclick="openProfile()">
+        <button class="btn-paint-open" onclick="toggleStudio()">🎨 STUDIO</button>
+        <div class="input-wrap">
+            <input type="text" id="msg-input" placeholder="Say something..." onkeypress="if(event.key==='Enter') sendMsg()">
+            <button onclick="sendMsg()" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--accent);">➤</button>
+        </div>
     </div>
+</div>
+
+<aside class="sidebar" id="sidebar">
+    <div style="padding:25px;">
+        <div style="display:flex; align-items:center; margin-bottom:20px;">
+            <h3 style="color:var(--accent); letter-spacing:2px; font-size:14px;">ACTIVE ARTISTS</h3>
+            <span class="member-count-badge" id="m-count">0</span>
+        </div>
+        <input type="text" class="member-search" id="m-search" placeholder="Search members..." oninput="filterMembers()">
+        <div id="member-list" style="height:70dvh; overflow-y:auto;"></div>
+        <button onclick="toggleMenu()" style="margin-top:20px; color:var(--danger); border:none; background:none; font-weight:900; font-size:11px; cursor:pointer;">CLOSE OVERLAY</button>
+    </div>
+</aside>
+
+<div id="profile-modal" class="modal-overlay">
+    <div class="modal-card">
+        <h2 style="font-family:'Dancing Script'; margin-bottom:15px; color:var(--accent);">Your Identity</h2>
+        <label for="p-photo-input">
+            <img id="setup-preview" src="" style="width:100px; height:100px; border-radius:50%; border:3px solid var(--accent); cursor:pointer; object-fit:cover;">
+        </label>
+        <input type="file" id="p-photo-input" accept="image/*" style="display:none;" onchange="handleNewPhoto(event)">
+        <input type="text" id="p-name-input" placeholder="Enter Name" style="width:100%; padding:12px; margin:15px 0; border:1px solid var(--border); border-radius:10px; text-align:center; background:#000; color:white;">
+        <button onclick="saveProfile()" style="width:100%; padding:12px; background:var(--accent); color:black; border:none; border-radius:10px; font-weight:900;">UPDATE PROFILE</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="crop-modal" style="background:#000;">
+    <div style="width:100%; height:80%;"><img id="crop-target" style="max-width:100%;"></div>
+    <button onclick="confirmCrop()" style="padding:15px 30px; background:var(--accent); border:none; border-radius:10px; position:absolute; bottom:30px; font-weight:bold;">CROP IMAGE</button>
 </div>
 
 <script>
@@ -199,91 +181,262 @@
     const supabaseKey = 'sb_publishable_ur42hv6jPnAzsMcPAYVL1A_v2UKB2CA';
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    let user = JSON.parse(localStorage.getItem('elite_user_v11')) || null;
+    let me = JSON.parse(localStorage.getItem('elite_v14_user')) || null;
+    let cropper = null;
+    let currentBlob = null;
+    let allMembers = [];
 
-    async function init() {
-        if (!user) {
-            const id = crypto.randomUUID();
-            user = { id, username: "Player_" + id.slice(0,4), avatar: `https://api.dicebear.com/7.x/bottts/svg?seed=${id}` };
-            localStorage.setItem('elite_user_v11', JSON.stringify(user));
+    // --- ORIGINAL ENGINE LOGIC ---
+    const canvas = document.getElementById('vertexCanvas');
+    const ctx = canvas.getContext('2d');
+    let painting = false;
+    let history = [];
+    let historyStep = -1;
+    let points = [];
+
+    const vState = {
+        brush: 'ink', color: '#00f2ff', size: 25,
+        modes: { smooth: false, radial: false, jitter: false, eraser: false, trail: false },
+        lastPoint: {x: 0, y: 0}
+    };
+
+    function initStudio() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        saveHistory();
+    }
+
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        return { x: (e.clientX || e.touches?.[0].clientX) - rect.left, y: (e.clientY || e.touches?.[0].clientY) - rect.top };
+    }
+
+    function startPosition(e) {
+        painting = true;
+        const pos = getPos(e);
+        vState.lastPoint = pos;
+        points = [pos];
+        draw(e);
+    }
+
+    function draw(e) {
+        if (!painting) return;
+        let currentPos = getPos(e);
+        if (vState.modes.smooth) {
+            currentPos.x = vState.lastPoint.x + (currentPos.x - vState.lastPoint.x) * 0.15;
+            currentPos.y = vState.lastPoint.y + (currentPos.y - vState.lastPoint.y) * 0.15;
         }
-        document.getElementById('my-avatar').src = user.avatar;
-        document.getElementById('newName').value = user.username;
+        renderStroke(vState.lastPoint, currentPos);
+        vState.lastPoint = currentPos;
+        points.push(currentPos);
+    }
 
-        loadMessages();
-        loadMembers();
+    function renderStroke(p1, p2) {
+        if (vState.modes.trail) { ctx.fillStyle = 'rgba(10,10,12,0.05)'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+        if (vState.modes.radial) {
+            for (let i = 0; i < 8; i++) {
+                ctx.save(); ctx.translate(canvas.width/2, canvas.height/2);
+                ctx.rotate((Math.PI * 2 / 8) * i);
+                executeBrush({x: p1.x - canvas.width/2, y: p1.y - canvas.height/2}, {x: p2.x - canvas.width/2, y: p2.y - canvas.height/2});
+                ctx.restore();
+            }
+        } else { executeBrush(p1, p2); }
+    }
 
-        _supabase.channel('room1').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, loadMessages).subscribe();
-        _supabase.channel('room1').on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, loadMembers).subscribe();
-        _supabase.channel('room1').on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' }, loadMessages).subscribe();
+    function executeBrush(p1, p2) {
+        ctx.globalCompositeOperation = vState.modes.eraser ? 'destination-out' : 'source-over';
+        ctx.strokeStyle = vState.modes.jitter ? `hsl(${Math.random()*360}, 100%, 50%)` : vState.color;
+        ctx.lineWidth = vState.size;
+        ctx.shadowBlur = (vState.brush === 'neon') ? vState.size : 0;
+        ctx.shadowColor = ctx.strokeStyle;
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y);
+        switch (vState.brush) {
+            case 'glitch':
+                ctx.lineTo(p2.x + (Math.random()-0.5)*50, p2.y); ctx.stroke(); break;
+            case 'drip':
+                ctx.lineTo(p2.x, p2.y); ctx.stroke();
+                if (Math.random() > 0.8) {
+                    ctx.beginPath(); ctx.lineWidth = vState.size/3;
+                    ctx.moveTo(p2.x, p2.y); ctx.lineTo(p2.x, p2.y + Math.random()*100); ctx.stroke();
+                } break;
+            case 'web':
+                ctx.lineWidth = 0.5; ctx.lineTo(p2.x, p2.y); ctx.stroke();
+                if(points.length > 10) {
+                    const old = points[points.length-10];
+                    ctx.moveTo(p2.x, p2.y); ctx.lineTo(old.x, old.y); ctx.stroke();
+                } break;
+            default: ctx.lineTo(p2.x, p2.y); ctx.stroke();
+        }
+    }
+
+    function saveHistory() {
+        if (historyStep < history.length - 1) history = history.slice(0, historyStep + 1);
+        history.push(canvas.toDataURL()); historyStep++;
+    }
+
+    function undo() {
+        if (historyStep > 0) {
+            historyStep--;
+            let img = new Image(); img.src = history[historyStep];
+            img.onload = () => { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0); };
+        }
+    }
+
+    function clearCanvas() { ctx.clearRect(0,0,canvas.width,canvas.height); saveHistory(); }
+
+    async function sendPainting() {
+        const blob = await (await fetch(canvas.toDataURL('image/png'))).blob();
+        const fileName = `drawings/${me.id}-${Date.now()}.png`;
+        await _supabase.storage.from('chat-photos').upload(fileName, blob);
+        const { data } = _supabase.storage.from('chat-photos').getPublicUrl(fileName);
+        await _supabase.from('messages').insert([{ content: `<img src="${data.publicUrl}" style="width:100%; border-radius:10px;">`, user_id: me.id, user_name: me.username, avatar_url: me.avatar }]);
+        toggleStudio();
+    }
+
+    // --- MESSAGE DELETE LOGIC ---
+    async function deleteMsg(id) {
+        if(!confirm("Erase your message?")) return;
+        await _supabase.from('messages').delete().eq('id', id).eq('user_id', me.id);
     }
 
     async function loadMessages() {
-        const { data } = await _supabase.from('messages').select('*, profiles(username, avatar_url), reactions(emoji, user_id)').order('created_at', { ascending: true });
-        if(data) {
-            const box = document.getElementById('messages');
-            box.innerHTML = '';
-            data.forEach(msg => {
-                const isMe = msg.user_id === user.id;
-                const name = msg.profiles?.username || msg.user_name || "Guest";
-                const pic = msg.profiles?.avatar_url || msg.avatar_url;
-
-                const div = document.createElement('div');
-                div.className = 'message-row';
-                if(isMe) div.style.alignSelf = 'flex-end';
-                
-                div.innerHTML = `
-                    ${!isMe ? `<img src="${pic}" class="avatar">` : ''}
-                    <div class="msg-bubble" style="${isMe ? 'background: #0084ff; border:none; border-bottom-left-radius: 18px; border-bottom-right-radius: 4px;' : ''}">
-                        <div class="msg-user" style="${isMe ? 'color: white; opacity:0.8;' : ''}">${name}</div>
-                        <div>${msg.content}</div>
-                        <div class="reactions-row">
-                            ${['❤️', '🔥', '👍'].map(e => {
-                                const count = msg.reactions?.filter(r => r.emoji === e).length || 0;
-                                const mine = msg.reactions?.some(r => r.emoji === e && r.user_id === user.id);
-                                return `<span class="react-btn ${mine?'active':''}" onclick="react(${msg.id},'${e}')">${e} ${count||''}</span>`;
-                            }).join('')}
-                        </div>
-                    </div>`;
-                box.appendChild(div);
-            });
-            box.scrollTop = box.scrollHeight;
-        }
+        const { data } = await _supabase.from('messages').select('*, profiles(username, avatar_url)').order('created_at', { ascending: true });
+        const box = document.getElementById('chat-box');
+        box.innerHTML = data.map(m => {
+            const isMe = m.user_id === me.id;
+            return `<div class="msg ${isMe ? 'me' : ''}">
+                <img src="${m.profiles?.avatar_url || m.avatar_url}" class="avatar">
+                <div class="bubble">
+                    ${isMe ? `<button class="del-btn" onclick="deleteMsg(${m.id})">×</button>` : ''}
+                    <div style="font-size:10px; font-weight:900; opacity:0.7; color:var(--accent)">${m.profiles?.username || m.user_name}</div>
+                    <div style="margin-top:5px;">${m.content}</div>
+                </div>
+            </div>`;
+        }).join('');
+        box.scrollTop = box.scrollHeight;
     }
 
-    async function sendMessage() {
-        const input = document.getElementById('msgInput');
+    async function sendMsg() {
+        const input = document.getElementById('msg-input');
         if(!input.value.trim()) return;
-        await _supabase.from('messages').insert([{ content: input.value, user_id: user.id, user_name: user.username, avatar_url: user.avatar }]);
+        await _supabase.from('messages').insert([{ content: input.value, user_id: me.id, user_name: me.username, avatar_url: me.avatar }]);
         input.value = '';
     }
 
-    async function react(mId, emoji) {
-        const { data } = await _supabase.from('reactions').select().eq('message_id', mId).eq('user_id', user.id).eq('emoji', emoji);
-        if(data.length) await _supabase.from('reactions').delete().eq('id', data[0].id);
-        else await _supabase.from('reactions').insert([{ message_id: mId, user_id: user.id, emoji }]);
-    }
-
+    // --- PRO MEMBER LOGIC ---
     async function loadMembers() {
-        const { data } = await _supabase.from('profiles').select('*');
+        const { data } = await _supabase.from('profiles').select('*').order('username');
         if(data) {
-            document.getElementById('member-list').innerHTML = data.map(m => `
-                <div class="member-item">
-                    <img src="${m.avatar_url}" class="avatar" style="width:30px; height:30px;">
-                    <span>${m.username}</span>
-                </div>`).join('');
+            allMembers = data;
+            document.getElementById('m-count').innerText = data.length;
+            renderMembers(data);
         }
     }
 
-    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); }
-    function openProfile() { document.getElementById('profileModal').classList.add('active'); }
-    function closeProfile() { document.getElementById('profileModal').classList.remove('active'); }
-    async function saveProfile() {
-        user.username = document.getElementById('newName').value;
-        localStorage.setItem('elite_user_v11', JSON.stringify(user));
-        await _supabase.from('profiles').upsert({ id: user.id, username: user.username, avatar_url: user.avatar });
-        closeProfile();
+    function renderMembers(list) {
+        const container = document.getElementById('member-list');
+        container.innerHTML = list.map(m => `
+            <div class="member-item">
+                <img src="${m.avatar_url}" style="width:30px; height:30px; border-radius:50%; border:1px solid var(--border);">
+                <span style="font-size:13px;">${m.username || 'Anonymous'}</span>
+            </div>
+        `).join('');
     }
+
+    function filterMembers() {
+        const q = document.getElementById('m-search').value.toLowerCase();
+        renderMembers(allMembers.filter(m => m.username.toLowerCase().includes(q)));
+    }
+
+    // --- SETUP & UI ---
+    function init() {
+        if (!me) {
+            const id = crypto.randomUUID();
+            me = { id, username: "New Artist", avatar: `https://api.dicebear.com/7.x/avataaars-neutral/svg?seed=${id}` };
+            openProfile();
+        } else {
+            refreshUI();
+            loadMessages();
+            loadMembers();
+            _supabase.channel('global').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, loadMessages).subscribe();
+            _supabase.channel('profiles').on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, loadMembers).subscribe();
+        }
+    }
+
+    function refreshUI() {
+        document.getElementById('footer-acc-img').src = me.avatar;
+        document.getElementById('setup-preview').src = me.avatar;
+        document.getElementById('p-name-input').value = me.username;
+    }
+
+    async function saveProfile() {
+        const name = document.getElementById('p-name-input').value.trim();
+        if(!name) return;
+        if(currentBlob) {
+            const fileName = `avatars/${me.id}.jpg`;
+            await _supabase.storage.from('chat-photos').upload(fileName, currentBlob, { upsert: true });
+            const { data } = _supabase.storage.from('chat-photos').getPublicUrl(fileName);
+            me.avatar = data.publicUrl;
+        }
+        me.username = name;
+        localStorage.setItem('elite_v14_user', JSON.stringify(me));
+        await _supabase.from('profiles').upsert({ id: me.id, username: me.username, avatar_url: me.avatar });
+        closeProfile(); refreshUI(); loadMessages(); loadMembers();
+    }
+
+    function handleNewPhoto(e) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (f) => {
+            document.getElementById('crop-modal').classList.add('active');
+            const target = document.getElementById('crop-target');
+            target.src = f.target.result;
+            if (cropper) cropper.destroy();
+            cropper = new Cropper(target, { aspectRatio: 1 });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function confirmCrop() {
+        cropper.getCroppedCanvas().toBlob(blob => {
+            currentBlob = blob;
+            document.getElementById('setup-preview').src = URL.createObjectURL(blob);
+            document.getElementById('crop-modal').classList.remove('active');
+        });
+    }
+
+    function toggleStudio() { document.getElementById('paint-studio').classList.toggle('active'); if(document.getElementById('paint-studio').classList.contains('active')) initStudio(); }
+    function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); if(document.getElementById('sidebar').classList.contains('active')) loadMembers(); }
+    function openProfile() { document.getElementById('profile-modal').classList.add('active'); }
+    function closeProfile() { document.getElementById('profile-modal').classList.remove('active'); }
+
+    // --- LISTENERS ---
+    canvas.addEventListener('mousedown', startPosition);
+    canvas.addEventListener('mousemove', draw);
+    window.addEventListener('mouseup', () => { if(painting) saveHistory(); painting = false; });
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e.touches[0]); });
+    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
+    window.addEventListener('touchend', () => { if(painting) saveHistory(); painting = false; });
+
+    document.getElementById('vertexColorPicker').oninput = (e) => vState.color = e.target.value;
+    document.getElementById('sizeSlider').oninput = (e) => { vState.size = e.target.value; document.getElementById('sizeVal').innerText = vState.size + 'px'; };
+    
+    document.querySelectorAll('#brushGrid .tool-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            document.querySelector('#brushGrid .tool-btn.active').classList.remove('active');
+            vState.brush = e.currentTarget.dataset.brush;
+            e.currentTarget.classList.add('active');
+        };
+    });
+
+    document.querySelectorAll('[data-mode]').forEach(btn => {
+        btn.onclick = (e) => {
+            vState.modes[e.currentTarget.dataset.mode] = !vState.modes[e.currentTarget.dataset.mode];
+            e.currentTarget.classList.toggle('active');
+        };
+    });
 
     init();
 </script>
