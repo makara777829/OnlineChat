@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crossy Road</title>
+    <title>Crossy Road | Elite Gallery</title>
     
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;900&display=swap" rel="stylesheet">
     
     <style>
         /* --- HEADER & UI OVERLAYS --- */
@@ -12,6 +13,8 @@
             margin: 0;
             padding: 0;
             font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Prevents scrollbars during game */
+            background-color: #badc58; /* Match game background */
         }
 
         header {
@@ -21,13 +24,15 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background: #ffffff;
+            background: rgba(255, 255, 255, 0.95); /* Slight transparency */
             position: fixed;
             top: 0;
             left: 0;
-            z-index: 10000; /* High z-index to stay above Three.js canvas */
+            /* CRITICAL: High Z-Index and pointer-events */
+            z-index: 999999; 
             box-sizing: border-box;
             border-bottom: 2px solid #ddd;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
         .gallery-title {
@@ -37,38 +42,90 @@
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
+            pointer-events: none; /* Let clicks pass through text to header */
+        }
+
+        .btn-back {
+            background: #2f3542;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
         }
 
         .btn-next {
             background: #ffa502;
             color: white;
             border: none;
-            padding: 8px 15px;
+            padding: 10px 20px;
             border-radius: 8px;
             font-weight: 900;
-            font-size: 10px;
+            font-size: 12px;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(255, 165, 2, 0.3);
+            box-shadow: 0 4px 0 #e67e22;
             text-transform: uppercase;
+            transition: 0.1s;
         }
 
-        /* Adjusting existing Crossy Road UI to not hide under header */
+        .btn-next:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #e67e22;
+        }
+
+        /* Prevent the Game Canvas from blocking button clicks */
+        canvas {
+            display: block;
+            z-index: 1;
+        }
+
+        /* Adjusting existing Crossy Road UI */
         #counter {
-            top: 70px !important; /* Move counter below header */
+            position: absolute;
+            top: 80px !important; 
+            left: 20px;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+            z-index: 100;
         }
 
-        /* If you have a style.css, ensure it doesn't conflict */
+        #controlls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        #end {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
     </style>
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
     <header>
-        <button onclick="window.history.back()" style="background:#2f3542; color:white; border:none; padding:8px 15px; border-radius:8px; font-weight:bold; cursor:pointer;">Back</button>
+        <button class="btn-back" onclick="window.history.back()">Back</button>
         
         <span class="gallery-title">Elite Gallery</span>
         
-        <button class="btn-next" onclick="window.location.href='index3.html'">🎮 NEXT GAME</button>
+        <button class="btn-next" onclick="console.log('Redirecting...'); window.location.href='index3.html';">
+            🎮 NEXT GAME
+        </button>
     </header>
 
     <div id="counter">0</div>
@@ -78,28 +135,28 @@
         <button id="forward">
           <svg width="30" height="30" viewBox="0 0 10 10">
             <g transform="rotate(0, 5,5)">
-              <path d="M5,4 L7,6 L3,6 L5,4" />
+              <path d="M5,4 L7,6 L3,6 L5,4" fill="white"/>
             </g>
           </svg>
         </button>
         <button id="left">
           <svg width="30" height="30" viewBox="0 0 10 10">
             <g transform="rotate(-90, 5,5)">
-              <path d="M5,4 L7,6 L3,6 L5,4" />
+              <path d="M5,4 L7,6 L3,6 L5,4" fill="white"/>
             </g>
           </svg>
         </button>
         <button id="backward">
           <svg width="30" height="30" viewBox="0 0 10 10">
             <g transform="rotate(180, 5,5)">
-              <path d="M5,4 L7,6 L3,6 L5,4" />
+              <path d="M5,4 L7,6 L3,6 L5,4" fill="white"/>
             </g>
           </svg>
         </button>
         <button id="right">
           <svg width="30" height="30" viewBox="0 0 10 10">
             <g transform="rotate(90, 5,5)">
-              <path d="M5,4 L7,6 L3,6 L5,4" />
+              <path d="M5,4 L7,6 L3,6 L5,4" fill="white"/>
             </g>
           </svg>
         </button>
@@ -107,10 +164,20 @@
     </div>
 
     <div id="end">
-      <button id="retry">Retry</button>
+      <h2>Game Over</h2>
+      <button id="retry" style="padding: 10px 20px; cursor: pointer;">Retry</button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/99/three.min.js"></script>
     <script src="script.js"></script>
+    
+    <script>
+        // Additional check: If the button is clicked and fails, log the error
+        document.querySelector('.btn-next').addEventListener('click', function() {
+            setTimeout(() => {
+                console.error("If you still see this, the page index3.html failed to load. Check your filename!");
+            }, 500);
+        });
+    </script>
 </body>
 </html>
