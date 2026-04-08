@@ -1,104 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <title>Talha - Crossy Road Game Clone</title>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <link rel="stylesheet" href="style.css" />
-    <link rel="icon" href="https://i.ibb.co/M6KTWnf/pic.jpg" />
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Menu</title>
     <style>
-      /* This ensures your buttons stay at the top and are clickable over the game */
-      header {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 60px;
-        background: white;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 20px;
-        box-sizing: border-box;
-        z-index: 9999; /* Higher than Three.js canvas */
-        border-bottom: 2px solid #ddd;
-      }
+        .game-column {
+            display: flex;
+            flex-direction: column; 
+            width: 220px;           
+            background-color: #2c3e50;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px auto;      
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
 
-      .btn-nav {
-        padding: 8px 16px;
-        border-radius: 5px;
-        border: none;
-        font-weight: bold;
-        cursor: pointer;
-        text-decoration: none;
-        font-family: sans-serif;
-      }
+        /* Styling for all buttons */
+        .game-column a {
+            color: white;
+            text-decoration: none;
+            padding: 15px;
+            margin-bottom: 8px;    
+            background-color: #34495e;
+            text-align: center;
+            font-family: sans-serif;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
 
-      .btn-back {
-        background: #2f3542;
-        color: white;
-      }
+        /* Hover effect for game buttons */
+        .game-column a:hover {
+            background-color: #3498db;
+        }
 
-      .btn-next {
-        background: #ffa502;
-        color: white;
-      }
+        /* Specific styling for the BACK button */
+        .game-column a.back-btn {
+            background-color: #e74c3c; /* Red color */
+            margin-top: 15px;          /* Extra space above it */
+            border-top: 2px solid #c0392b;
+        }
 
-      /* Push the game counter down so it doesn't hide under your new buttons */
-      #counter {
-        top: 70px !important;
-        z-index: 1000;
-      }
+        .game-column a.back-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .title {
+            text-align: center;
+            font-family: sans-serif;
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 40px;
+        }
     </style>
-  </head>
-  <body>
-    <header>
-      <button class="btn-nav btn-back" onclick="window.history.back()">Back</button>
-      <span style="font-family: sans-serif; font-weight: bold;">Elite Gallery</span>
-      <button class="btn-nav btn-next" onclick="window.location.href='index3.html'">🎮 NEXT GAME</button>
-    </header>
+</head>
+<body>
 
-    <div id="counter">0</div>
+    <div class="title">thename</div>
 
-    <div id="controlls">
-      <div>
-        <button id="forward">
-          <svg width="30" height="30" viewBox="0 0 10 10">
-            <g transform="rotate(0, 5,5)">
-              <path d="M5,4 L7,6 L3,6 L5,4" />
-            </g>
-          </svg>
-        </button>
-        <button id="left">
-          <svg width="30" height="30" viewBox="0 0 10 10">
-            <g transform="rotate(-90, 5,5)">
-              <path d="M5,4 L7,6 L3,6 L5,4" />
-            </g>
-          </svg>
-        </button>
-        <button id="backward">
-          <svg width="30" height="30" viewBox="0 0 10 10">
-            <g transform="rotate(180, 5,5)">
-              <path d="M5,4 L7,6 L3,6 L5,4" />
-            </g>
-          </svg>
-        </button>
-        <button id="right">
-          <svg width="30" height="30" viewBox="0 0 10 10">
-            <g transform="rotate(90, 5,5)">
-              <path d="M5,4 L7,6 L3,6 L5,4" />
-            </g>
-          </svg>
-        </button>
-      </div>
+    <div class="game-column">
+        <a href="index3.html">the game 1</a>
+        <a href="index4.html">the game 2</a>
+        <a href="index5.html">the game 3</a>
+        <a href="index6.html">the game 4</a>
+
+        <a href="index.html" class="back-btn">BACK</a>
     </div>
 
-    <div id="end">
-      <button id="retry">Retry</button>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/99/three.min.js"></script>
-    <script src="script.js"></script>
-  </body>
+</body>
 </html>
