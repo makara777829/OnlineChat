@@ -8,7 +8,63 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
-    <style>
+    <style> 
+    /* --- RESPONSIVE OVERRIDES --- */
+
+/* 1. Fix the Paint Studio Sidebar for small phones */
+@media (max-width: 400px) {
+    #mainSidebar {
+        width: calc(100% - 40px) !important; /* Spans full width minus padding */
+        left: 20px;
+        top: 10px;
+    }
+    
+    #actionGroup {
+        top: auto;
+        bottom: 20px; /* Moves Save/Clear buttons to the bottom so they don't overlap sidebar */
+        left: 20px;
+        right: 20px;
+        justify-content: center;
+    }
+
+    .tool-grid {
+        grid-template-columns: repeat(4, 1fr); /* Stacks buttons horizontally to save space */
+    }
+}
+
+/* 2. Fix the Catalog Sidebar width */
+@media (max-width: 500px) {
+    .sidebar {
+        width: 85%; /* Don't use fixed 280px; 85% is safer for tiny screens */
+    }
+}
+
+/* 3. Adjust the Chat Bubbles and Footer for small screens */
+@media (max-width: 480px) {
+    .msg {
+        max-width: 95%; /* Give bubbles more room */
+    }
+    
+    .bubble {
+        padding: 8px;
+        font-size: 14px; /* Easier to read on mobile */
+    }
+
+    .footer {
+        gap: 4px;
+        padding: 8px;
+    }
+
+    .footer button {
+        padding: 8px 4px;
+        font-size: 8px; /* Prevent the Paint/Game buttons from pushing the input out */
+    }
+}
+
+/* 4. Fix for iPhones with "Notches" (Safe Area) */
+header {
+    padding-top: calc(12px + env(safe-area-inset-top));
+}
         :root {
             --paint-accent: #ff4757; 
             --vertex-accent: #00f2ff;
