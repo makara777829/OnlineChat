@@ -9,62 +9,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     
     <style> 
-    /* --- RESPONSIVE OVERRIDES --- */
+        /* --- RESPONSIVE OVERRIDES --- */
+        @media (max-width: 400px) {
+            #mainSidebar { width: calc(100% - 40px) !important; left: 20px; top: 10px; }
+            #actionGroup { top: auto; bottom: 20px; left: 20px; right: 20px; justify-content: center; }
+            .tool-grid { grid-template-columns: repeat(4, 1fr); }
+        }
 
-/* 1. Fix the Paint Studio Sidebar for small phones */
-@media (max-width: 400px) {
-    #mainSidebar {
-        width: calc(100% - 40px) !important; /* Spans full width minus padding */
-        left: 20px;
-        top: 10px;
-    }
-    
-    #actionGroup {
-        top: auto;
-        bottom: 20px; /* Moves Save/Clear buttons to the bottom so they don't overlap sidebar */
-        left: 20px;
-        right: 20px;
-        justify-content: center;
-    }
+        @media (max-width: 500px) { .sidebar { width: 85%; } }
 
-    .tool-grid {
-        grid-template-columns: repeat(4, 1fr); /* Stacks buttons horizontally to save space */
-    }
-}
+        @media (max-width: 480px) {
+            .msg { max-width: 95%; }
+            .bubble { padding: 8px; font-size: 14px; }
+            .footer { gap: 4px; padding: 8px; }
+            .footer button { padding: 8px 4px; font-size: 8px; }
+        }
 
-/* 2. Fix the Catalog Sidebar width */
-@media (max-width: 500px) {
-    .sidebar {
-        width: 85%; /* Don't use fixed 280px; 85% is safer for tiny screens */
-    }
-}
+        header { padding-top: calc(12px + env(safe-area-inset-top)); }
 
-/* 3. Adjust the Chat Bubbles and Footer for small screens */
-@media (max-width: 480px) {
-    .msg {
-        max-width: 95%; /* Give bubbles more room */
-    }
-    
-    .bubble {
-        padding: 8px;
-        font-size: 14px; /* Easier to read on mobile */
-    }
-
-    .footer {
-        gap: 4px;
-        padding: 8px;
-    }
-
-    .footer button {
-        padding: 8px 4px;
-        font-size: 8px; /* Prevent the Paint/Game buttons from pushing the input out */
-    }
-}
-
-/* 4. Fix for iPhones with "Notches" (Safe Area) */
-header {
-    padding-top: calc(12px + env(safe-area-inset-top));
-}
         :root {
             --paint-accent: #ff4757; 
             --vertex-accent: #00f2ff;
@@ -105,12 +67,6 @@ header {
         .action-btn { padding: 10px 15px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; font-size: 11px; transition: 0.2s; }
         .btn-save { background: var(--vertex-accent); color: #000; }
         .btn-clear { background: #2f3542; color: #fff; }
-
-        /* --- GAME MODAL --- */
-        #game-overlay { position: fixed; inset: 0; background: #0a0a0c; z-index: 9500; display: none; align-items: center; justify-content: center; flex-direction: column; color: white; }
-        #game-overlay.active { display: flex; }
-        .game-target { width: 100px; height: 100px; background: var(--vertex-accent); border-radius: 50%; box-shadow: 0 0 30px var(--vertex-accent); cursor: pointer; transition: 0.1s; }
-        .game-target:active { transform: scale(0.9); }
 
         /* --- CATALOG & CHAT --- */
         .sidebar { position: fixed; left: 0; top: 0; width: 280px; height: 100%; background: var(--sidebar-bg); z-index: 4000; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); transform: translateX(-100%); display: flex; flex-direction: column; box-shadow: 20px 0 50px rgba(0,0,0,0.3); }
@@ -176,13 +132,6 @@ header {
     </div>
 </div>
 
-<div id="game-overlay">
-    <div style="position:absolute; top:20px; left:20px; font-weight:900; color:var(--vertex-accent);">NEON CLICKER</div>
-    <div id="game-score" style="font-size:3rem; font-weight:900; margin-bottom:20px;">0</div>
-    <div class="game-target" onclick="scorePoint()"></div>
-    <button class="action-btn" style="margin-top:40px; background:#fff; color:#000;" onclick="toggleGame()">Exit Game</button>
-</div>
-
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMenu()"></div>
 <aside class="sidebar" id="sidebar">
     <div style="padding:25px; color:white;">
@@ -201,9 +150,9 @@ header {
     <div id="chat-box"></div>
 
     <div class="footer">
-        <img id="footer-acc-img" class="avatar" style="cursor:pointer; border-color:white;" onclick="openProfile()">
+        <img id="footer-acc-img" class="avatar" style="cursor:pointer; border-color:white; background:#eee;" onclick="openProfile()">
         <button onclick="toggleStudio()" style="background:var(--paint-accent); color:white; border:none; padding:10px 8px; border-radius:10px; font-weight:900; font-size:10px;">🎨 PAINT</button>
-        <button onclick="toggleGame()" style="background:var(--game-accent); color:white; border:none; padding:10px 8px; border-radius:10px; font-weight:900; font-size:10px;">🎮 GAME</button>
+        <button onclick="window.location.href='index2.htm'" style="background:var(--game-accent); color:white; border:none; padding:10px 8px; border-radius:10px; font-weight:900; font-size:10px;">🎮 GAME</button>
         <div class="input-wrap">
             <input type="text" id="msg-input" placeholder="Say something..." onkeypress="if(event.key==='Enter') sendMsg()">
             <button onclick="sendMsg()" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">➤</button>
@@ -215,7 +164,7 @@ header {
     <div style="background:white; padding:40px; border-radius:20px; text-align:center; width:90%; max-width:350px;">
         <h2 style="font-family:'Dancing Script'; margin-bottom:20px;">Your Identity</h2>
         <input type="text" id="p-name-input" placeholder="Artist Name" style="width:100%; padding:15px; border-radius:12px; border:1px solid #ddd; margin-bottom:20px;">
-        <button class="action-btn" style="background:#2f3542; color:white; width:100%; padding:15px;" onclick="saveProfile()">Enter Gallery</button>
+        <button class="action-btn" style="background:#2f3542; color:white; width:100%; padding:15px;" onclick="saveProfile()">Save Identity</button>
     </div>
 </div>
 
@@ -225,25 +174,6 @@ header {
     const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     let me = JSON.parse(localStorage.getItem('elite_v14_user')) || null;
-    let score = 0;
-
-    // --- GAME LOGIC ---
-    function toggleGame() {
-        const game = document.getElementById('game-overlay');
-        game.classList.toggle('active');
-        if(!game.classList.contains('active') && score > 0) {
-            sendMsg(`I just scored **${score}** in Neon Clicker! 🎮`);
-            score = 0;
-            document.getElementById('game-score').innerText = 0;
-        }
-    }
-    function scorePoint() {
-        score++;
-        document.getElementById('game-score').innerText = score;
-        const target = document.querySelector('.game-target');
-        target.style.marginTop = Math.random() * 50 + "px";
-        target.style.marginLeft = (Math.random() * 40 - 20) + "px";
-    }
     
     // --- PAINT ENGINE ---
     let painting = false;
@@ -325,15 +255,26 @@ header {
     async function saveProfile() {
         const name = document.getElementById('p-name-input').value.trim();
         if(!name) return;
+        
+        // Persist existing ID or create one if fresh
         me = me || { id: crypto.randomUUID() };
         me.username = name;
-        me.avatar = `https://api.dicebear.com/7.x/avataaars-neutral/svg?seed=${me.id}`;
+        // Generate dynamic avatar based on name seed
+        me.avatar = `https://api.dicebear.com/7.x/avataaars-neutral/svg?seed=${name}`;
+        
         localStorage.setItem('elite_v14_user', JSON.stringify(me));
+        
+        // Upsert to Supabase profiles table
         await _supabase.from('profiles').upsert({ id: me.id, username: me.username, avatar_url: me.avatar });
-        closeProfile(); refreshUI(); startChat();
+        
+        closeProfile(); 
+        refreshUI(); 
+        startChat();
     }
 
-    function refreshUI() { document.getElementById('footer-acc-img').src = me.avatar; }
+    function refreshUI() { 
+        if(me) document.getElementById('footer-acc-img').src = me.avatar; 
+    }
 
     function startChat() {
         loadMessages(); loadCatalog();
@@ -359,10 +300,10 @@ header {
         if(!data) return;
         const box = document.getElementById('chat-box');
         box.innerHTML = data.map(m => {
-            const isMe = m.user_id === me.id;
+            const isMe = m.user_id === me?.id;
             const reacts = (m.reactions || []).reduce((acc, r) => {
                 acc[r.emoji] = (acc[r.emoji] || 0) + 1;
-                if(r.user_id === me.id) { acc.myReacts = acc.myReacts || {}; acc.myReacts[r.emoji] = true; }
+                if(r.user_id === me?.id) { acc.myReacts = acc.myReacts || {}; acc.myReacts[r.emoji] = true; }
                 return acc;
             }, {myReacts: {}});
             const reactHtml = Object.entries(reacts).filter(([k]) => k !== 'myReacts').map(([emoji, count]) => `
@@ -401,12 +342,14 @@ header {
     }
 
     async function toggleReaction(mid, emoji) {
+        if(!me) return;
         const { data } = await _supabase.from('reactions').select('id').eq('message_id', mid).eq('user_id', me.id).eq('emoji', emoji).maybeSingle();
         if(data) await _supabase.from('reactions').delete().eq('id', data.id);
         else await _supabase.from('reactions').insert([{ message_id: mid, user_id: me.id, emoji: emoji }]);
     }
 
     async function sendMsg(overrideContent = null) {
+        if(!me) return;
         const input = document.getElementById('msg-input');
         const content = overrideContent || input.value.trim();
         if(!content) return;
@@ -415,7 +358,12 @@ header {
     }
 
     function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('sidebar-overlay').classList.toggle('active'); }
-    function openProfile() { document.getElementById('profile-modal').classList.add('active'); }
+    
+    function openProfile() { 
+        if(me) document.getElementById('p-name-input').value = me.username;
+        document.getElementById('profile-modal').classList.add('active'); 
+    }
+    
     function closeProfile() { document.getElementById('profile-modal').classList.remove('active'); }
 
     init();
