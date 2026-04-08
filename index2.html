@@ -1,183 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Crossy Road | Elite Gallery</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@400;900&display=swap" rel="stylesheet">
-    
-    <style>
-        /* --- HEADER & UI OVERLAYS --- */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', sans-serif;
-            overflow: hidden; /* Prevents scrollbars during game */
-            background-color: #badc58; /* Match game background */
-        }
-
-        header {
-            width: 100%;
-            height: 60px;
-            padding: 0 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(255, 255, 255, 0.95); /* Slight transparency */
-            position: fixed;
-            top: 0;
-            left: 0;
-            /* CRITICAL: High Z-Index and pointer-events */
-            z-index: 999999; 
-            box-sizing: border-box;
-            border-bottom: 2px solid #ddd;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .gallery-title {
-            font-family: 'Dancing Script', cursive;
-            font-size: 1.8rem;
-            color: #2f3542;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            pointer-events: none; /* Let clicks pass through text to header */
-        }
-
-        .btn-back {
-            background: #2f3542;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-next {
-            background: #ffa502;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 900;
-            font-size: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #e67e22;
-            text-transform: uppercase;
-            transition: 0.1s;
-        }
-
-        .btn-next:active {
-            transform: translateY(2px);
-            box-shadow: 0 2px 0 #e67e22;
-        }
-
-        /* Prevent the Game Canvas from blocking button clicks */
-        canvas {
-            display: block;
-            z-index: 1;
-        }
-
-        /* Adjusting existing Crossy Road UI */
-        #counter {
-            position: absolute;
-            top: 80px !important; 
-            left: 20px;
-            font-size: 2rem;
-            font-weight: 900;
-            color: #ffffff;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
-            z-index: 100;
-        }
-
-        #controlls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-        }
-
-        #end {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 1000;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-        }
-    </style>
-    <link rel="stylesheet" href="style.css" />
-</head>
-<body>
-
-    <header>
-        <button class="btn-back" onclick="window.history.back()">Back</button>
+<style>
+    /* 1. Make sure the header is at the absolute top of the stack */
+    header {
+        width: 100%;
+        height: 60px;
+        background: white;
+        position: fixed;
+        top: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        box-sizing: border-box;
+        border-bottom: 2px solid #ddd;
         
-        <span class="gallery-title">Elite Gallery</span>
+        /* This ensures the header sits on top of the 3D Canvas */
+        z-index: 999999 !important; 
+    }
+
+    /* 2. Force the button to be clickable even if the game tries to block it */
+    .btn-next {
+        background: #ffa502;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 900;
+        cursor: pointer;
         
-        <button class="btn-next" onclick="console.log('Redirecting...'); window.location.href='index3.html';">
-            🎮 NEXT GAME
-        </button>
-    </header>
+        /* Use 'all' to ensure it captures the pointer */
+        pointer-events: all !important; 
+        position: relative;
+        z-index: 1000000 !important;
+    }
 
-    <div id="counter">0</div>
+    /* 3. Push the game's counter down so it doesn't overlap the header */
+    #counter {
+        top: 80px !important;
+    }
+</style>
 
-    <div id="controlls">
-      <div>
-        <button id="forward">
-          <svg width="30" height="30" viewBox="0 0 10 10">
-            <g transform="rotate(0, 5,5)">
-              <path d="M5,4 L7,6 L3,6 L5,4" fill="white"/>
-            </g>
-          </svg>
-        </button>
-        <button id="left">
-          <svg width="30" height="30" viewBox="0 0 10 10">
-            <g transform="rotate(-90, 5,5)">
-              <path d="M5,4 L7,6 L3,6 L5,4" fill="white"/>
-            </g>
-          </svg>
-        </button>
-        <button id="backward">
-          <svg width="30" height="30" viewBox="0 0 10 10">
-            <g transform="rotate(180, 5,5)">
-              <path d="M5,4 L7,6 L3,6 L5,4" fill="white"/>
-            </g>
-          </svg>
-        </button>
-        <button id="right">
-          <svg width="30" height="30" viewBox="0 0 10 10">
-            <g transform="rotate(90, 5,5)">
-              <path d="M5,4 L7,6 L3,6 L5,4" fill="white"/>
-            </g>
-          </svg>
-        </button>
-      </div>
-    </div>
-
-    <div id="end">
-      <h2>Game Over</h2>
-      <button id="retry" style="padding: 10px 20px; cursor: pointer;">Retry</button>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/99/three.min.js"></script>
-    <script src="script.js"></script>
+<header>
+    <button onclick="window.history.back()" style="cursor:pointer; z-index:1000000; pointer-events:all;">Back</button>
     
-    <script>
-        // Additional check: If the button is clicked and fails, log the error
-        document.querySelector('.btn-next').addEventListener('click', function() {
-            setTimeout(() => {
-                console.error("If you still see this, the page index3.html failed to load. Check your filename!");
-            }, 500);
-        });
-    </script>
-</body>
-</html>
+    <span class="gallery-title">Elite Gallery</span>
+    
+    <button class="btn-next" onclick="console.log('Moving to next page...'); window.location.assign('index3.html');">
+        🎮 NEXT GAME
+    </button>
+</header>
