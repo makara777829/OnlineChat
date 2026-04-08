@@ -1,51 +1,74 @@
-<style>
-    /* 1. Make sure the header is at the absolute top of the stack */
-    header {
-        width: 100%;
-        height: 60px;
-        background: white;
-        position: fixed;
-        top: 0;
-        left: 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 20px;
-        box-sizing: border-box;
-        border-bottom: 2px solid #ddd;
-        
-        /* This ensures the header sits on top of the 3D Canvas */
-        z-index: 999999 !important; 
-    }
-
-    /* 2. Force the button to be clickable even if the game tries to block it */
-    .btn-next {
-        background: #ffa502;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: 900;
-        cursor: pointer;
-        
-        /* Use 'all' to ensure it captures the pointer */
-        pointer-events: all !important; 
-        position: relative;
-        z-index: 1000000 !important;
-    }
-
-    /* 3. Push the game's counter down so it doesn't overlap the header */
-    #counter {
-        top: 80px !important;
-    }
-</style>
-
-<header>
-    <button onclick="window.history.back()" style="cursor:pointer; z-index:1000000; pointer-events:all;">Back</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crossy Road</title>
     
-    <span class="gallery-title">Elite Gallery</span>
-    
-    <button class="btn-next" onclick="console.log('Moving to next page...'); window.location.assign('index3.html');">
-        🎮 NEXT GAME
-    </button>
-</header>
+    <style>
+        /* This CSS is essential to keep the button on top of the game */
+        header {
+            width: 100%;
+            height: 60px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-sizing: border-box;
+            border-bottom: 2px solid #ddd;
+            
+            /* High z-index ensures it stays above the Three.js canvas */
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999; 
+        }
+
+        .btn-next {
+            background: #ffa502;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-weight: 900;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        /* Adjust the game counter so it doesn't overlap the new header */
+        #counter {
+            top: 70px !important;
+            z-index: 1000;
+        }
+
+        body { margin: 0; font-family: sans-serif; }
+    </style>
+</head>
+<body>
+    <header>
+        <button onclick="window.history.back()" style="cursor:pointer;">Back</button>
+        <span style="font-weight:bold;">Elite Gallery</span>
+        <button class="btn-next" onclick="window.location.href='index3.html'">🎮 NEXT GAME</button>
+    </header>
+
+    <div id="counter">0</div>
+
+    <div id="controlls">
+      <div>
+        <button id="forward">Up</button>
+        <button id="left">Left</button>
+        <button id="backward">Down</button>
+        <button id="right">Right</button>
+      </div>
+    </div>
+
+    <div id="end">
+      <button id="retry">Retry</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/99/three.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
